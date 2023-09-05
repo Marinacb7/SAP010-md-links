@@ -3,10 +3,10 @@ const path = require('path');
 const fetch = require('cross-fetch');
 
 function mdLinks(filePath, options = { validate: false }) {
-  return new Promise((resolve, reject) => {
-    // Verificar se a rota é relativa e converter em absoluta
-    const absolutePath = path.resolve(filePath);
+  // Verificar se a rota é relativa e converter em absoluta
+  const absolutePath = path.resolve(filePath);
 
+  return new Promise((resolve, reject) => {
     // Verificar se o arquivo/diretório existe
     fs.access(absolutePath)
       .then(() => {
@@ -16,34 +16,41 @@ function mdLinks(filePath, options = { validate: false }) {
           return;
         }
 
-        // Ler o arquivo Markdown
-        return fs.readFile(absolutePath, 'utf-8');
-      })
-      .then((content) => {
-        // Encontrar links no conteúdo do arquivo
-        const links = [];
-        const regex = /\[([^\]]+)\]\((http[s]?:\/\/[^\)]+)\)/g;
-        let match = regex.exec(content);
+        fs.stat(absolutePath)
+          .then((stats) => {
+            if (stats.isDirectory()) {
+              return readDirectoryMd(absolutePath);
+            } else if (stats.isFile()) {
+              return fs.readFile(absolutePath, 'utf-8');
+            }
+          })
+          .then((content) => {
+            // Encontrar links no conteúdo do arquivo
+            const links = [];
+            const regex = /\[([^\]]+)\]\((http[s]?:\/\/[^\)]+)\)/g;
+            let match = regex.exec(content);
 
-        while (match !== null) {
-          const [, text, href] = match;
-          links.push({ href, text, file: absolutePath });
-          match = regex.exec(content);
-        }
+            while (match !== null) {
+              const [, text, href] = match;
+              links.push({ href, text, file: absolutePath });
+              match = regex.exec(content);
+            }
 
-        if (links.length === 0) {
-          reject(new Error('No links found in this file.'));
-        } else {
-          if (options.validate) {
-            validateLinks(links)
-              .then((validatedLinks) => {
-                resolve(validatedLinks);
-              })
-              .catch(reject);
-          } else {
-            resolve(links);
-          }
-        }
+            if (links.length === 0) {
+              reject(new Error('No links found in this file.'));
+            } else {
+              if (options.validate) {
+                validateLinks(links)
+                  .then((validatedLinks) => {
+                    resolve(validatedLinks);
+                  })
+                  .catch(reject);
+              } else {
+                resolve(links);
+              }
+            }
+          })
+          .catch(reject);
       })
       .catch(reject);
   });
@@ -66,5 +73,18 @@ function validateLinks(arrayLinks) {
 
   return Promise.all(promises);
 }
+
+function readDirectoryMd(directoryPath) {
+  return fs.readdir(directoryPath)
+    .then((files) => {
+      const promises = files.map((file) => {
+        const filePath = path.join(directoryPath, file);
+        return fs.readFile(filePath, 'utf-8');
+      });
+
+      return Promise.all(promises);
+    });
+}
+
 
 module.exports = mdLinks;
