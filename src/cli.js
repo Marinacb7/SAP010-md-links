@@ -2,7 +2,7 @@
 const program = require('commander');
 const mdLinks = require('./index'); // Importe a função mdLinks
 const chalk = require('chalk');
-const Table = require('cli-table');
+const Table = require('cli-table3');
 
 // Defina as opções de linha de comando
 program
@@ -23,29 +23,29 @@ mdLinks(filePath, options)
   .then((links) => {
     if (options.stats) {
       const stats = getStats(links);
-      console.log(stats);
+      console.log(chalk.blue(stats)); 
     } else {
       printLinks(links);
     }
   })
   .catch((error) => {
-    console.error(chalk.red(error.message));
+    console.error(chalk.red(error.message)); 
   });
 
 function getStats(links) {
   const totalLinks = links.length;
   const uniqueLinks = Array.from(new Set(links.map((link) => link.href))).length;
-  return `Total: ${totalLinks}\nUnique: ${uniqueLinks}`;
+  return `Total: ${chalk.green(totalLinks)}\nUnique: ${chalk.green(uniqueLinks)}`; 
 }
 
 function printLinks(links) {
   const table = new Table({
-    head: ['File', 'Link', 'Text'],
+    head: [chalk.cyan('File'), chalk.cyan('Link'), chalk.cyan('Text')], 
     colWidths: [30, 40, 40],
   });
 
   links.forEach((link) => {
-    table.push([link.file, link.href, link.text]);
+    table.push([link.file, chalk.blue(link.href), link.text]); 
   });
 
   console.log(table.toString());

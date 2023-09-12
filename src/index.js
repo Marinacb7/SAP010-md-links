@@ -12,7 +12,9 @@ function mdLinks(filePath, options = { validate: false }) {
       .then(() => {
         // Verificar a extensão do arquivo
         if (path.extname(absolutePath).toLowerCase() !== '.md') {
-          reject(new Error('Incompatible file: not a Markdown file.'));
+          const errorMessage = 'Incompatible file: not a Markdown file.';
+          console.error(errorMessage);
+          reject(new Error(errorMessage));
           return;
         }
 
