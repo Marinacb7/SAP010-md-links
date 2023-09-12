@@ -1,3 +1,6 @@
-[gitHub](https://www.github.com)
-[gitHub](https://www.github.com)
-[Link quebrado](https://www.lakakaka.con) 
+# File 1
+
+This is a sample markdown file.
+
+[Google](https://www.google.com/)
+[OpenAI](https://www.openai.com/)
